@@ -20,11 +20,11 @@ import {
   showPopup,
   togglePopup,
 } from "./popup-window";
+import { getPreferences } from "./preferences";
 import { openSettingsWindow } from "./settings-window";
 import { uiEvents } from "./ui-events";
 
 const HIGHLIGHT_MS = 35_000;
-const MINI_AUTO_HIDE_MS = 35_000;
 
 type BadgeName = "plain" | "green" | "red" | "yellow";
 
@@ -133,6 +133,7 @@ export function initTray(monitor: Monitor): Tray {
     maybeStartTicker();
     render();
     if (tray) {
+      const autoHideMs = getPreferences().notificationDurationSeconds * 1000;
       showMini(
         tray,
         {
@@ -143,7 +144,7 @@ export function initTray(monitor: Monitor): Tray {
           durationSeconds,
           branch: d.meta.githubCommitRef ?? null,
         },
-        MINI_AUTO_HIDE_MS,
+        autoHideMs, // 0 → persistent
       );
     }
   });

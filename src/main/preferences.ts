@@ -6,12 +6,15 @@ export interface Preferences {
   pollIntervalSeconds: number;
   watchedProjectIds: string[];
   launchAtLogin: boolean;
+  /** Auto-dismiss delay for the mini notification card. 0 = persistent. */
+  notificationDurationSeconds: number;
 }
 
 const DEFAULTS: Preferences = {
   pollIntervalSeconds: 45,
   watchedProjectIds: [],
   launchAtLogin: false,
+  notificationDurationSeconds: 30,
 };
 
 let cache: Preferences | null = null;

@@ -17,6 +17,7 @@ interface ConfigSnapshot {
   watchedProjectIds: string[];
   pollIntervalSeconds: number;
   launchAtLogin: boolean;
+  notificationDurationSeconds: number;
 }
 
 interface DeployerApi {
@@ -27,6 +28,7 @@ interface DeployerApi {
   setWatchedProjects(ids: string[]): Promise<void>;
   setPollInterval(seconds: number): Promise<void>;
   setLaunchAtLogin(enabled: boolean): Promise<void>;
+  setNotificationDuration(seconds: number): Promise<void>;
   openExternal(url: string): Promise<void>;
   onConfigChanged(cb: (config: ConfigSnapshot) => void): () => void;
 }
@@ -114,6 +116,12 @@ function render(config: ConfigSnapshot): void {
 
   // Launch at login
   ($("launch-at-login") as HTMLInputElement).checked = config.launchAtLogin;
+
+  // Notification duration — coerce to one of the select's known values
+  const durSelect = $("notification-duration") as HTMLSelectElement;
+  const validDurations = new Set(["10", "30", "60", "0"]);
+  const currentDur = String(config.notificationDurationSeconds);
+  durSelect.value = validDurations.has(currentDur) ? currentDur : "30";
 }
 
 
@@ -190,6 +198,13 @@ async function onLaunchAtLoginChange(e: Event): Promise<void> {
   await bridge.setLaunchAtLogin((e.target as HTMLInputElement).checked);
 }
 
+async function onNotificationDurationChange(e: Event): Promise<void> {
+  const v = parseInt((e.target as HTMLSelectElement).value, 10);
+  if (Number.isFinite(v) && v >= 0) {
+    await bridge.setNotificationDuration(v);
+  }
+}
+
 async function onTokensLinkClick(e: Event): Promise<void> {
   e.preventDefault();
   await bridge.openExternal("https://vercel.com/account/tokens");
@@ -211,6 +226,10 @@ async function init(): Promise<void> {
   ($("launch-at-login") as HTMLInputElement).addEventListener(
     "change",
     onLaunchAtLoginChange,
+  );
+  ($("notification-duration") as HTMLSelectElement).addEventListener(
+    "change",
+    onNotificationDurationChange,
   );
   ($("token") as HTMLInputElement).addEventListener("keydown", (e) => {
     if ((e as KeyboardEvent).key === "Enter") void onSaveToken();

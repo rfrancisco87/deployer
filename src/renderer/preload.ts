@@ -14,6 +14,8 @@ const api = {
     ipcRenderer.invoke("deployer:setPollInterval", seconds),
   setLaunchAtLogin: (enabled: boolean) =>
     ipcRenderer.invoke("deployer:setLaunchAtLogin", enabled),
+  setNotificationDuration: (seconds: number) =>
+    ipcRenderer.invoke("deployer:setNotificationDuration", seconds),
   openExternal: (url: string) =>
     ipcRenderer.invoke("deployer:openExternal", url),
   onConfigChanged: (cb: (config: unknown) => void): Unsubscribe => {
@@ -58,6 +60,7 @@ const api = {
   getMiniPayload: () => ipcRenderer.invoke("deployer:getMiniPayload"),
   openDeploymentDetail: (id: string) =>
     ipcRenderer.invoke("deployer:openDeploymentDetail", id),
+  dismissMini: () => ipcRenderer.invoke("deployer:dismissMini"),
   onMiniPayload: (cb: (payload: unknown) => void): Unsubscribe => {
     const listener = (_: unknown, payload: unknown) => cb(payload);
     ipcRenderer.on("deployer:miniPayload", listener);

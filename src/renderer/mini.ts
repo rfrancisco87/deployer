@@ -14,6 +14,7 @@ interface MiniPayload {
 interface MiniBridge {
   getMiniPayload(): Promise<MiniPayload | null>;
   openDeploymentDetail(id: string): Promise<void>;
+  dismissMini(): Promise<void>;
   onMiniPayload(cb: (payload: MiniPayload | null) => void): () => void;
 }
 
@@ -62,9 +63,16 @@ function render(payload: MiniPayload | null): void {
 }
 
 async function init(): Promise<void> {
-  $("card").addEventListener("click", async () => {
+  $("card").addEventListener("click", async (e) => {
+    // Don't treat a click on the close button as a request to open details.
+    if ((e.target as HTMLElement).closest("#close")) return;
     const payload = await bridge.getMiniPayload();
     if (payload) await bridge.openDeploymentDetail(payload.deploymentId);
+  });
+
+  $("close").addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await bridge.dismissMini();
   });
 
   bridge.onMiniPayload((p) => render(p));

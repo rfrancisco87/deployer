@@ -12,7 +12,7 @@
     "build": "npm run build:ts && npm run build:assets",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron .",
-    "package": "npm run build && PATH=\"$PWD/scripts/shims:$PATH\" electron-builder --mac",
+    "package": "npm run build && PATH=\"$PWD/scripts/shims:$PATH\" electron-builder --mac && electron-rebuild",
     "rebuild": "electron-rebuild",
     "clean": "rm -rf dist release build",
     "postinstall": "electron-rebuild"

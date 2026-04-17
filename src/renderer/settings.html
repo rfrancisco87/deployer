@@ -50,7 +50,7 @@
       letter-spacing: 0.05em;
       color: var(--muted);
     }
-    input[type="password"], input[type="number"] {
+    input[type="password"], input[type="number"], select {
       padding: 6px 9px;
       border: 1px solid var(--border);
       border-radius: 5px;
@@ -60,11 +60,12 @@
       font-family: inherit;
       outline: none;
     }
-    input[type="password"]:focus, input[type="number"]:focus {
+    input[type="password"]:focus, input[type="number"]:focus, select:focus {
       border-color: var(--accent);
     }
     input[type="password"] { flex: 1; }
     input[type="number"] { width: 90px; }
+    select { min-width: 170px; cursor: pointer; }
     button {
       padding: 6px 14px;
       border: 1px solid var(--border);
@@ -101,6 +102,13 @@
       padding: 3px 0;
       cursor: pointer;
       user-select: none;
+    }
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      margin: 0;
     }
     .hint {
       font-size: 12px;
@@ -167,6 +175,15 @@
       <span style="min-width: 170px">Check every</span>
       <input type="number" id="interval" min="20" max="600" step="5" />
       <span class="hint" style="margin: 0">seconds (min 20)</span>
+    </div>
+    <div class="row" style="margin-top: 10px">
+      <span style="min-width: 170px">Notification</span>
+      <select id="notification-duration">
+        <option value="10">Dismiss after 10 seconds</option>
+        <option value="30">Dismiss after 30 seconds</option>
+        <option value="60">Dismiss after 60 seconds</option>
+        <option value="0">Stay until dismissed</option>
+      </select>
     </div>
     <div class="row" style="margin-top: 10px">
       <label>

@@ -70,4 +70,5 @@ export interface ConfigSnapshot {
   watchedProjectIds: string[];
   pollIntervalSeconds: number;
   launchAtLogin: boolean;
+  notificationDurationSeconds: number;
 }

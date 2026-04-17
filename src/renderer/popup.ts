@@ -214,7 +214,7 @@ function buildDetail(d: Deployment): HTMLDivElement {
 
   wrap.appendChild(actions);
 
-  const msg = d.meta.githubCommitMessage?.split("\n")[0];
+  const msg = d.meta.githubCommitMessage?.split("\n")[0]?.trim();
   if (msg) {
     const commit = document.createElement("div");
     commit.className = "commit";

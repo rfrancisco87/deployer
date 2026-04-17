@@ -38,6 +38,7 @@ export function registerIpc(
       watchedProjectIds: prefs.watchedProjectIds,
       pollIntervalSeconds: prefs.pollIntervalSeconds,
       launchAtLogin: getLaunchAtLogin(),
+      notificationDurationSeconds: prefs.notificationDurationSeconds,
     };
   };
 
@@ -171,6 +172,16 @@ export function registerIpc(
     },
   );
 
+  ipcMain.handle(
+    "deployer:setNotificationDuration",
+    async (_e, seconds: unknown) => {
+      const n = Number(seconds);
+      if (!Number.isFinite(n) || n < 0) return;
+      savePreferences({ notificationDurationSeconds: Math.round(n) });
+      void broadcast();
+    },
+  );
+
   ipcMain.handle("deployer:openExternal", async (_e, url: unknown) => {
     if (typeof url === "string") await openUrl(url);
   });
@@ -213,4 +224,8 @@ export function registerIpc(
       showPopupFocused(tray, id);
     },
   );
+
+  ipcMain.handle("deployer:dismissMini", () => {
+    hideMini();
+  });
 }
