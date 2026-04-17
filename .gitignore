@@ -29,4 +29,5 @@ yarn-error.log*
 .claude/
 
 # Keep docs local-only for now
-docs/
+docs/*
+!docs/app-preview.png

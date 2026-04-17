@@ -212,22 +212,6 @@ function buildDetail(d: Deployment): HTMLDivElement {
     }),
   );
 
-  const branch = d.meta.githubCommitRef;
-  const copyBtn = makeActionButton(
-    "⎘",
-    branch ? "Copy" : "No branch",
-    !!branch,
-    () => {
-      console.log("[popup.ts] Copy click ->", branch);
-      if (branch) {
-        flashStatus(`Copied ${branch} to clipboard`);
-        void bridge.copyText(branch);
-      }
-    },
-    branch ?? "",
-  );
-  actions.appendChild(copyBtn);
-
   wrap.appendChild(actions);
 
   const msg = d.meta.githubCommitMessage?.split("\n")[0];
