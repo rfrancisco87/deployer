@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# dmg-builder calls `python` (not python3); macOS 12+ ships only python3.
+# This shim is prepended to PATH by the `package` npm script.
+exec python3 "$@"

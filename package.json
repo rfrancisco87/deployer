@@ -12,7 +12,7 @@
     "build": "npm run build:ts && npm run build:assets",
     "start": "npm run build && electron .",
     "dev": "npm run build && electron .",
-    "package": "npm run build && electron-builder --mac",
+    "package": "npm run build && PATH=\"$PWD/scripts/shims:$PATH\" electron-builder --mac",
     "rebuild": "electron-rebuild",
     "clean": "rm -rf dist release build",
     "postinstall": "electron-rebuild"
@@ -43,6 +43,13 @@
       "category": "public.app-category.developer-tools",
       "target": [
         {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
           "target": "zip",
           "arch": [
             "arm64",
@@ -55,6 +62,26 @@
         "LSUIElement": true,
         "NSHumanReadableCopyright": "Copyright © 2026 Roberto Francisco. MIT License."
       }
+    },
+    "dmg": {
+      "title": "Deployer ${version}",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 190,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   }
 }

@@ -22,15 +22,13 @@ A native macOS menu bar app that surfaces Vercel deployment status in real time.
 
 ## Install (end users)
 
-The app is distributed unsigned — macOS Gatekeeper will block first launch. The three steps below get you running in under a minute.
+The app is distributed unsigned — macOS Gatekeeper will block first launch. These steps get you running in under a minute.
 
-1. **Grab the latest build** from the [Releases page](https://github.com/rfrancisco87/deployer/releases) (or the `release/` folder if you built it yourself):
-   - `Deployer-<version>-arm64-mac.zip` for Apple Silicon
-   - `Deployer-<version>-mac.zip` for Intel
-2. **Unzip and move to `/Applications`:**
-   ```bash
-   unzip ~/Downloads/Deployer-*-arm64-mac.zip -d /Applications
-   ```
+1. **Grab the latest build** from the [Releases page](https://github.com/rfrancisco87/deployer/releases) (or the `release/` folder if you built it yourself). Pick one:
+   - `Deployer-<version>-arm64.dmg` — Apple Silicon, recommended
+   - `Deployer-<version>.dmg` — Intel
+   - `.zip` variants also provided if you'd rather skip the DMG.
+2. **Install the `.dmg`:** double-click it → drag `Deployer.app` onto the `Applications` shortcut → eject.
 3. **Bypass Gatekeeper** (only required once, because the app isn't code-signed):
    ```bash
    xattr -dr com.apple.quarantine /Applications/Deployer.app
@@ -87,13 +85,19 @@ npm run build          # one-shot TS + asset copy
 npm run dev            # alias of `start`
 ```
 
-### Packaging your own `.app`
+### Packaging your own build
 
 ```bash
-npm run package        # produces release/mac-arm64/Deployer.app + zips
+npm run package        # produces .dmg + .zip for both arm64 and x64
 ```
 
-`electron-builder` rebuilds native modules for the target architecture automatically. Output lands in `release/` — follow the "Install" section above using the zip you produced.
+`electron-builder` rebuilds native modules for the target architecture automatically. Output lands in `release/`:
+
+- `Deployer-<version>-arm64.dmg` / `Deployer-<version>.dmg`
+- `Deployer-<version>-arm64-mac.zip` / `Deployer-<version>-mac.zip`
+- `release/mac-arm64/Deployer.app` / `release/mac/Deployer.app` — the raw bundles, if you'd rather skip distribution formats.
+
+**Python note:** `dmg-builder` calls a binary named `python` (not `python3`). The `scripts/shims/python` symlink in the repo forwards to `python3`, and the `package` npm script prepends it to `PATH` automatically — no system-wide change required.
 
 ### Regenerating tray icons
 
