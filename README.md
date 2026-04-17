@@ -21,7 +21,7 @@ A native macOS menu bar app that surfaces Vercel deployment status in real time.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/robertofrancisco/dev.git
+   git clone https://github.com/rfrancisco87/deployer.git
    cd deployer
    ```
 
