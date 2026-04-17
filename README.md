@@ -2,6 +2,8 @@
 
 A native macOS menu bar app that surfaces Vercel deployment status in real time. Built with Electron.
 
+![Deployer app preview](docs/app-preview.png)
+
 ## Features
 
 - **Menu Bar Status** — Glanceable colored icon showing deployment status (green = ready, yellow = building, red = error)
