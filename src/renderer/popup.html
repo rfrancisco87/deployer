@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Deployer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      /* Dark by default to match inspiration */
+      --bg: #0a0a0a;
+      --card: #0f0f0f;
+      --card-inner: #141414;
+      --fg: #f4f4f5;
+      --fg-dim: #a1a1aa;
+      --fg-dimmer: #71717a;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --hover: rgba(255, 255, 255, 0.05);
+      --btn-bg: #1c1c1e;
+      --btn-bg-hover: #242426;
+      --ok: #22c55e;
+      --warn: #eab308;
+      --err: #ef4444;
+      --muted: #6b7280;
+      --accent: #ffffff;
+      --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --card-inner: #f4f4f5;
+        --fg: #09090b;
+        --fg-dim: #52525b;
+        --fg-dimmer: #a1a1aa;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-strong: rgba(0, 0, 0, 0.14);
+        --hover: rgba(0, 0, 0, 0.04);
+        --btn-bg: #f4f4f5;
+        --btn-bg-hover: #e4e4e7;
+        --muted: #71717a;
+        --accent: #0a0a0a;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      color: var(--fg);
+      height: 100%;
+    }
+    .shell {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+    }
+    header .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    header .brand {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--card);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    header .icon {
+      opacity: 0.85;
+    }
+    header .actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    header button.icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--fg-dim);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+    header button.icon-btn:hover { background: var(--hover); color: var(--fg); }
+
+    /* List */
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+    }
+    .list::-webkit-scrollbar { width: 6px; }
+    .list::-webkit-scrollbar-track { background: transparent; }
+    .list::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.3);
+      border-radius: 3px;
+    }
+
+    .row {
+      border-bottom: 1px solid var(--border);
+    }
+    .row:last-child { border-bottom: none; }
+    .row.expanded { background: var(--card-inner); }
+
+    .row-head {
+      display: grid;
+      grid-template-columns: 14px 1fr auto 16px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .row-head:hover { background: var(--hover); }
+    .row.expanded .row-head { background: transparent; }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .dot.ready { background: var(--ok); }
+    .dot.error { background: var(--err); }
+    .dot.building { background: var(--warn); box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); animation: pulse 1.4s infinite; }
+    .dot.canceled { background: var(--fg-dimmer); }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+    }
+
+    .row-main { min-width: 0; }
+    .row-project {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .row-sub {
+      font-size: 12px;
+      color: var(--fg-dim);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .row-side {
+      text-align: right;
+      font-size: 12px;
+      color: var(--fg-dim);
+      white-space: nowrap;
+    }
+    .row-side .target {
+      font-weight: 500;
+      color: var(--fg);
+      font-size: 13px;
+    }
+    .row-side .date { margin-top: 2px; }
+    .row-chevron {
+      color: var(--fg-dimmer);
+      font-size: 11px;
+      transition: transform 0.15s ease;
+    }
+    .row.expanded .row-chevron { transform: rotate(180deg); }
+
+    /* Expanded detail */
+    .detail {
+      padding: 4px 16px 16px;
+      display: none;
+    }
+    .row.expanded .detail { display: block; }
+
+    .duration {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--fg-dim);
+      font-size: 12px;
+      padding: 6px 0 12px;
+    }
+    .duration .duration-value {
+      font-family: var(--mono);
+      color: var(--fg);
+      font-weight: 500;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-family: var(--sans);
+      text-align: left;
+      transition: background 0.1s ease;
+    }
+    .action-btn:hover:not(:disabled) { background: var(--btn-bg-hover); }
+    .action-btn:disabled { opacity: 0.4; cursor: default; }
+    .action-btn .action-icon {
+      color: var(--fg-dim);
+      font-size: 13px;
+      width: 16px;
+      display: inline-flex;
+      justify-content: center;
+    }
+    .action-btn code {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--fg-dim);
+    }
+
+    .commit {
+      margin-top: 12px;
+      background: #0b0b0d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--fg);
+    }
+    @media (prefers-color-scheme: light) {
+      .commit { background: #0f172a; color: #e2e8f0; border-color: transparent; }
+      .commit .hash-line { color: #94a3b8; }
+    }
+    .commit .hash-line {
+      color: var(--fg-dimmer);
+      margin-bottom: 4px;
+    }
+    .commit .msg-line {
+      color: var(--fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .commit .msg-line::before {
+      content: "> ";
+      color: var(--fg-dim);
+    }
+
+    /* Empty / status states */
+    .empty-state {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--fg-dim);
+    }
+    .empty-state h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .empty-state p { margin: 0; font-size: 12.5px; line-height: 1.5; }
+    .empty-state button {
+      margin-top: 14px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border-strong);
+      color: var(--fg);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .empty-state button:hover { background: var(--btn-bg-hover); }
+
+    .show-all-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 12px 16px 16px;
+      padding: 9px 12px;
+      background: transparent;
+      border: 1px dashed var(--border-strong);
+      border-radius: 8px;
+      color: var(--fg-dim);
+      cursor: pointer;
+      font-size: 12.5px;
+      font-family: var(--sans);
+    }
+    .show-all-btn:hover {
+      background: var(--hover);
+      color: var(--fg);
+      border-style: solid;
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--fg-dimmer);
+      user-select: none;
+    }
+    footer .left { display: flex; align-items: center; gap: 8px; }
+    footer button.link {
+      background: transparent;
+      border: none;
+      color: var(--fg-dim);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-family: var(--sans);
+    }
+    footer button.link:hover { background: var(--hover); color: var(--fg); }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title">
+        <span class="icon">▲</span>
+        <span>Deployments</span>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="refresh" title="Refresh">↻</button>
+        <button class="icon-btn" id="settings" title="Settings">⚙</button>
+      </div>
+    </header>
+    <div class="list" id="list">
+      <div class="empty-state">
+        <h3>Loading…</h3>
+        <p>Fetching your deployments.</p>
+      </div>
+    </div>
+    <footer>
+      <span class="left" id="footer-status">—</span>
+      <button class="link" id="quit">Quit</button>
+    </footer>
+  </div>
+  <script src="./popup.js"></script>
+</body>
+</html>

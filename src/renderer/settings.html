@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Deployer — Settings</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f5f5f5;
+      --fg: #1e1e1e;
+      --muted: rgba(30, 30, 30, 0.6);
+      --border: rgba(128, 128, 128, 0.3);
+      --hover: rgba(128, 128, 128, 0.1);
+      --accent: #0070f3;
+      --error: #ef4444;
+      --ok: #22c55e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1e;
+        --fg: #f0f0f0;
+        --muted: rgba(240, 240, 240, 0.6);
+        --border: rgba(160, 160, 160, 0.25);
+        --hover: rgba(255, 255, 255, 0.08);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      margin: 0;
+      padding: 22px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .section {
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-child { border-bottom: none; margin-bottom: 0; }
+    h2 {
+      font-size: 11px;
+      font-weight: 600;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    input[type="password"], input[type="number"] {
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: transparent;
+      color: inherit;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    input[type="password"]:focus, input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+    input[type="password"] { flex: 1; }
+    input[type="number"] { width: 90px; }
+    button {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: transparent;
+      color: inherit;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button:hover:not(:disabled) { background: var(--hover); }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button.primary:hover:not(:disabled) { background: #0060d3; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row + .row { margin-top: 8px; }
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      min-height: 16px;
+    }
+    .status.error { color: var(--error); }
+    .status.ok { color: var(--ok); }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .hint a { color: var(--accent); text-decoration: none; cursor: pointer; }
+    .hint a:hover { text-decoration: underline; }
+    .project-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 10px;
+      margin-top: 8px;
+    }
+    .empty {
+      color: var(--muted);
+      padding: 18px 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .project-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 4px;
+    }
+    .spread { display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="section">
+    <h2>Vercel Token</h2>
+    <div class="row">
+      <input type="password" id="token" placeholder="paste token (starts with the account prefix)" autocomplete="off" />
+      <button class="primary" id="save-token">Save</button>
+      <button id="clear-token">Clear</button>
+    </div>
+    <div class="status" id="token-status">No token set</div>
+    <div class="hint">
+      Create a token at
+      <a id="tokens-link">vercel.com/account/tokens</a>.
+      Hobby accounts have full API access.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Projects</h2>
+    <div class="spread">
+      <span class="hint" style="margin: 0">Pick which projects to watch.</span>
+      <div style="display: flex; gap: 6px">
+        <button id="toggle-all-projects" disabled>Select all</button>
+        <button id="refresh-projects">Refresh</button>
+      </div>
+    </div>
+    <div class="project-list" id="project-list">
+      <div class="empty">Save a valid token to load projects.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>General</h2>
+    <div class="row">
+      <span style="min-width: 170px">Check every</span>
+      <input type="number" id="interval" min="20" max="600" step="5" />
+      <span class="hint" style="margin: 0">seconds (min 20)</span>
+    </div>
+    <div class="row" style="margin-top: 10px">
+      <label>
+        <input type="checkbox" id="launch-at-login" />
+        Launch Deployer at login
+      </label>
+    </div>
+  </div>
+
+  <script src="./settings.js"></script>
+</body>
+</html>

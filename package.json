@@ -1,0 +1,60 @@
+{
+  "name": "deployer",
+  "version": "0.1.0",
+  "description": "macOS menu bar app that surfaces Vercel deployment status in real time.",
+  "main": "dist/main/index.js",
+  "author": "Roberto Francisco",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build:ts": "tsc && tsc -p tsconfig.renderer.json",
+    "build:assets": "node scripts/copy-assets.js",
+    "build": "npm run build:ts && npm run build:assets",
+    "start": "npm run build && electron .",
+    "dev": "npm run build && electron .",
+    "package": "npm run build && electron-builder --mac",
+    "rebuild": "electron-rebuild",
+    "clean": "rm -rf dist release build",
+    "postinstall": "electron-rebuild"
+  },
+  "dependencies": {
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "@types/node": "^22.9.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.7.2"
+  },
+  "build": {
+    "appId": "com.robertofrancisco.deployer",
+    "productName": "Deployer",
+    "copyright": "Copyright © 2026 Roberto Francisco",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "identity": null,
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSHumanReadableCopyright": "Copyright © 2026 Roberto Francisco. MIT License."
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+import type { Deployment, DeploymentState, Project } from "../../shared/types";
+import type {
+  VercelDeploymentDTO,
+  VercelDeploymentsResponse,
+  VercelProjectsResponse,
+  VercelUserDTO,
+} from "./types";
+
+const BASE = "https://api.vercel.com";
+
+export class UnauthenticatedError extends Error {
+  constructor() {
+    super("Vercel token is missing or invalid");
+    this.name = "UnauthenticatedError";
+  }
+}
+
+export class RateLimitedError extends Error {
+  constructor(public retryAfterSeconds: number) {
+    super(`Vercel rate-limited; retry in ${retryAfterSeconds}s`);
+    this.name = "RateLimitedError";
+  }
+}
+
+export class TransportError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+    this.name = "TransportError";
+  }
+}
+
+export class DecodeError extends Error {
+  constructor() {
+    super("Could not decode Vercel response");
+    this.name = "DecodeError";
+  }
+}
+
+interface RequestOptions {
+  path: string;
+  method?: string;
+  query?: Record<string, string | number | undefined>;
+}
+
+const KNOWN_STATES: ReadonlySet<DeploymentState> = new Set([
+  "QUEUED",
+  "INITIALIZING",
+  "BUILDING",
+  "READY",
+  "ERROR",
+  "CANCELED",
+]);
+
+function normalizeState(raw: string | undefined): DeploymentState {
+  if (raw && KNOWN_STATES.has(raw as DeploymentState)) {
+    return raw as DeploymentState;
+  }
+  return "QUEUED";
+}
+
+function toDeployment(dto: VercelDeploymentDTO): Deployment {
+  const id = dto.uid ?? dto.id ?? "";
+  return {
+    id,
+    url: dto.url,
+    name: dto.name,
+    state: normalizeState((dto.state ?? dto.readyState) as string | undefined),
+    target: dto.target === "production" ? "production" : null,
+    createdAt: dto.createdAt ?? dto.created ?? Date.now(),
+    meta: {
+      githubCommitMessage: dto.meta?.githubCommitMessage,
+      githubCommitRef: dto.meta?.githubCommitRef,
+      githubCommitSha: dto.meta?.githubCommitSha,
+      githubRepo: dto.meta?.githubRepo,
+      githubRepoOwner: dto.meta?.githubRepoOwner,
+    },
+    inspectorUrl: dto.inspectorUrl ?? null,
+    creator: dto.creator?.username ?? null,
+    aliases: Array.isArray(dto.alias) ? dto.alias : [],
+  };
+}
+
+export class VercelClient {
+  constructor(private readonly getToken: () => Promise<string | null>) {}
+
+  async getUser(): Promise<{ username: string }> {
+    const data = await this.request<VercelUserDTO>({ path: "/v2/user" });
+    const username =
+      data.user.username ?? data.user.name ?? data.user.email ?? "unknown";
+    return { username };
+  }
+
+  async listProjects(): Promise<Project[]> {
+    const data = await this.request<VercelProjectsResponse>({
+      path: "/v9/projects",
+      query: { limit: 100 },
+    });
+    return data.projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      framework: p.framework ?? null,
+    }));
+  }
+
+  async listDeployments(projectId: string, limit = 20): Promise<Deployment[]> {
+    const data = await this.request<VercelDeploymentsResponse>({
+      path: "/v6/deployments",
+      query: { projectId, limit },
+    });
+    return data.deployments.map(toDeployment);
+  }
+
+  private async request<T>(opts: RequestOptions): Promise<T> {
+    const token = await this.getToken();
+    if (!token) throw new UnauthenticatedError();
+
+    const url = new URL(opts.path, BASE);
+    if (opts.query) {
+      for (const [k, v] of Object.entries(opts.query)) {
+        if (v !== undefined) url.searchParams.set(k, String(v));
+      }
+    }
+
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: opts.method ?? "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      throw new TransportError((err as Error).message);
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      throw new UnauthenticatedError();
+    }
+    if (res.status === 429) {
+      const retryAfter = parseInt(res.headers.get("retry-after") ?? "60", 10);
+      throw new RateLimitedError(Number.isFinite(retryAfter) ? retryAfter : 60);
+    }
+    if (!res.ok) {
+      throw new TransportError(
+        `HTTP ${res.status} ${res.statusText}`,
+        res.status,
+      );
+    }
+
+    try {
+      return (await res.json()) as T;
+    } catch {
+      throw new DecodeError();
+    }
+  }
+}
