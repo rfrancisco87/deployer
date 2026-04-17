@@ -1,4 +1,5 @@
-import { app, BrowserWindow, clipboard, ipcMain, shell } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain } from "electron";
+import { openUrl } from "./open-url";
 import type { ConfigSnapshot } from "../shared/types";
 import {
   clearCachedProjects,
@@ -171,16 +172,7 @@ export function registerIpc(
   );
 
   ipcMain.handle("deployer:openExternal", async (_e, url: unknown) => {
-    console.log("[deployer] openExternal:", url);
-    if (typeof url === "string" && /^https?:\/\//.test(url)) {
-      try {
-        await shell.openExternal(url);
-      } catch (err) {
-        console.error("[deployer] shell.openExternal failed:", err);
-      }
-    } else {
-      console.warn("[deployer] openExternal rejected non-https url:", url);
-    }
+    if (typeof url === "string") await openUrl(url);
   });
 
   // Popup window channels

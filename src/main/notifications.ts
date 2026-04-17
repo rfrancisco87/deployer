@@ -1,4 +1,5 @@
-import { Notification, shell } from "electron";
+import { Notification } from "electron";
+import { openUrl } from "./open-url";
 import type { TransitionEvent } from "../shared/types";
 import type { Monitor } from "./monitor";
 
@@ -35,8 +36,7 @@ function postNotification(event: TransitionEvent): void {
   });
 
   n.on("click", () => {
-    const url = deepLink(event);
-    void shell.openExternal(url);
+    void openUrl(deepLink(event));
   });
 
   n.show();
