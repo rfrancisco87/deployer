@@ -12,13 +12,16 @@ export function openSettingsWindow(): void {
 
   settingsWindow = new BrowserWindow({
     width: 560,
-    height: 660,
+    height: 720,
     title: "Deployer — Settings",
     resizable: true,
     minimizable: false,
     maximizable: false,
     fullscreenable: false,
     show: false,
+    backgroundColor: "#0a0a0a",
+    titleBarStyle: "hiddenInset",
+    vibrancy: undefined,
     webPreferences: {
       preload: path.join(__dirname, "..", "renderer", "preload.js"),
       contextIsolation: true,

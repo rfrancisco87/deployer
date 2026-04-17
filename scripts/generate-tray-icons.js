@@ -16,9 +16,9 @@ const GREEN = [34, 197, 94];
 const RED = [239, 68, 68];
 const YELLOW = [234, 179, 8];
 
-// Geometry (fractions of icon size)
-const TRI_TOP = 0.16;
-const TRI_BOTTOM = 0.84;
+// Geometry (fractions of icon size).
+const TRI_TOP = 0.18;
+const TRI_BOTTOM = 0.82;
 const TRI_HALF_BASE = 0.42;     // half-width at the base
 const BADGE_R = 0.26;           // badge radius
 const BADGE_CX = 0.76;          // badge center x
