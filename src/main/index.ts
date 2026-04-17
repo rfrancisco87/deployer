@@ -13,6 +13,7 @@ import { loadPreferences } from "./preferences";
 import { openSettingsWindow } from "./settings-window";
 import { StateStore } from "./state-store";
 import { initTray, refreshTray } from "./tray";
+import { startUpdateChecker } from "./update-checker";
 import { UnauthenticatedError, VercelClient } from "./vercel/client";
 
 async function main(): Promise<void> {
@@ -42,6 +43,7 @@ async function main(): Promise<void> {
   onAuthStateChange(() => refreshTray());
 
   monitor.start();
+  startUpdateChecker();
 
   const token = await keychain.getToken();
   if (!token) {

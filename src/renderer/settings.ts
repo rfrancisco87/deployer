@@ -20,6 +20,15 @@ interface ConfigSnapshot {
   notificationDurationSeconds: number;
 }
 
+interface UpdateInfo {
+  currentVersion: string;
+  latestVersion?: string;
+  available: boolean;
+  releaseUrl?: string;
+  checkedAt?: number;
+  error?: string;
+}
+
 interface DeployerApi {
   getConfig(): Promise<ConfigSnapshot>;
   setToken(t: string): Promise<{ ok: boolean; username?: string; error?: string }>;
@@ -30,6 +39,8 @@ interface DeployerApi {
   setLaunchAtLogin(enabled: boolean): Promise<void>;
   setNotificationDuration(seconds: number): Promise<void>;
   openExternal(url: string): Promise<void>;
+  getUpdateInfo(): Promise<UpdateInfo>;
+  checkForUpdate(): Promise<UpdateInfo>;
   onConfigChanged(cb: (config: ConfigSnapshot) => void): () => void;
 }
 
@@ -210,6 +221,48 @@ async function onTokensLinkClick(e: Event): Promise<void> {
   await bridge.openExternal("https://vercel.com/account/tokens");
 }
 
+function renderUpdateStatus(info: UpdateInfo): void {
+  const status = $("update-status");
+  const hint = $("update-hint") as HTMLElement;
+  if (info.error) {
+    status.textContent = `Couldn't reach GitHub (${info.error})`;
+    hint.style.display = "none";
+    return;
+  }
+  if (!info.latestVersion) {
+    status.textContent = `Current v${info.currentVersion}`;
+    hint.style.display = "none";
+    return;
+  }
+  if (info.available) {
+    status.textContent = `v${info.latestVersion} is available (you're on v${info.currentVersion})`;
+    hint.style.display = "block";
+    hint.innerHTML =
+      '<a id="update-download-link">Open the release page to download →</a>';
+    const link = document.getElementById("update-download-link");
+    link?.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (info.releaseUrl) void bridge.openExternal(info.releaseUrl);
+    });
+  } else {
+    status.textContent = `You're on the latest (v${info.currentVersion})`;
+    hint.style.display = "none";
+  }
+}
+
+async function onCheckUpdatesClick(): Promise<void> {
+  const btn = $("check-updates") as HTMLButtonElement;
+  btn.disabled = true;
+  btn.textContent = "Checking…";
+  try {
+    const info = await bridge.checkForUpdate();
+    renderUpdateStatus(info);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Check for updates";
+  }
+}
+
 async function init(): Promise<void> {
   const config = await bridge.getConfig();
   render(config);
@@ -231,11 +284,15 @@ async function init(): Promise<void> {
     "change",
     onNotificationDurationChange,
   );
+  $("check-updates").addEventListener("click", onCheckUpdatesClick);
   ($("token") as HTMLInputElement).addEventListener("keydown", (e) => {
     if ((e as KeyboardEvent).key === "Enter") void onSaveToken();
   });
 
   bridge.onConfigChanged(render);
+
+  // Initial update status (whatever was cached from the startup check).
+  bridge.getUpdateInfo().then(renderUpdateStatus);
 }
 
 void init();

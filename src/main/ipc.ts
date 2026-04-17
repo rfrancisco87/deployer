@@ -20,6 +20,10 @@ import {
 } from "./popup-window";
 import { openSettingsWindow } from "./settings-window";
 import { uiEvents } from "./ui-events";
+import {
+  checkForUpdate,
+  getLastUpdateInfo,
+} from "./update-checker";
 import { UnauthenticatedError, VercelClient } from "./vercel/client";
 import type { Tray } from "electron";
 
@@ -228,4 +232,8 @@ export function registerIpc(
   ipcMain.handle("deployer:dismissMini", () => {
     hideMini();
   });
+
+  // Update checker
+  ipcMain.handle("deployer:getUpdateInfo", () => getLastUpdateInfo());
+  ipcMain.handle("deployer:checkForUpdate", () => checkForUpdate());
 }

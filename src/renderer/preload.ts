@@ -61,6 +61,10 @@ const api = {
   openDeploymentDetail: (id: string) =>
     ipcRenderer.invoke("deployer:openDeploymentDetail", id),
   dismissMini: () => ipcRenderer.invoke("deployer:dismissMini"),
+
+  // Update checker
+  getUpdateInfo: () => ipcRenderer.invoke("deployer:getUpdateInfo"),
+  checkForUpdate: () => ipcRenderer.invoke("deployer:checkForUpdate"),
   onMiniPayload: (cb: (payload: unknown) => void): Unsubscribe => {
     const listener = (_: unknown, payload: unknown) => cb(payload);
     ipcRenderer.on("deployer:miniPayload", listener);
