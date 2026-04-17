@@ -36,10 +36,26 @@ export interface Deployment {
   state: DeploymentState;
   target: "production" | null;
   createdAt: number;
+  /** When the build phase actually started (null if still QUEUED). */
+  buildingAt: number | null;
+  /** When the deployment reached READY (null if still in flight or errored). */
+  readyAt: number | null;
   meta: DeploymentMeta;
   inspectorUrl: string | null;
   creator: string | null;
   aliases: string[];
+}
+
+/**
+ * Duration the user cares about: time the build was actually running.
+ * Matches Vercel's dashboard timer: `ready - buildingAt` for completed
+ * deployments, `now - buildingAt` while in flight. Falls back to
+ * `createdAt` only if `buildingAt` isn't populated yet.
+ */
+export function buildDurationSeconds(d: Deployment, now = Date.now()): number {
+  const start = d.buildingAt ?? d.createdAt;
+  const end = d.readyAt ?? now;
+  return Math.max(0, Math.floor((end - start) / 1000));
 }
 
 export type AggregateStatus =

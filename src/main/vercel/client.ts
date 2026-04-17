@@ -60,13 +60,18 @@ function normalizeState(raw: string | undefined): DeploymentState {
 
 function toDeployment(dto: VercelDeploymentDTO): Deployment {
   const id = dto.uid ?? dto.id ?? "";
+  const state = normalizeState(
+    (dto.state ?? dto.readyState) as string | undefined,
+  );
   return {
     id,
     url: dto.url,
     name: dto.name,
-    state: normalizeState((dto.state ?? dto.readyState) as string | undefined),
+    state,
     target: dto.target === "production" ? "production" : null,
     createdAt: dto.createdAt ?? dto.created ?? Date.now(),
+    buildingAt: dto.buildingAt ?? null,
+    readyAt: state === "READY" ? (dto.ready ?? dto.readyAt ?? null) : null,
     meta: {
       githubCommitMessage: dto.meta?.githubCommitMessage,
       githubCommitRef: dto.meta?.githubCommitRef,

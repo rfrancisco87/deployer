@@ -7,11 +7,12 @@ import {
   type MenuItemConstructorOptions,
 } from "electron";
 import path from "path";
-import type {
-  Deployment,
-  DeploymentState,
-  MonitorSnapshot,
-  TransitionEvent,
+import {
+  buildDurationSeconds,
+  type Deployment,
+  type DeploymentState,
+  type MonitorSnapshot,
+  type TransitionEvent,
 } from "../shared/types";
 import { showMini, hideMini } from "./mini-window";
 import type { Monitor } from "./monitor";
@@ -118,10 +119,7 @@ export function initTray(monitor: Monitor): Tray {
     const last = events[events.length - 1];
     if (!last) return;
     const d = last.deployment;
-    const durationSeconds = Math.max(
-      0,
-      Math.floor((Date.now() - d.createdAt) / 1000),
-    );
+    const durationSeconds = buildDurationSeconds(d);
     highlight = {
       projectName: d.name,
       to: last.to,
@@ -228,7 +226,10 @@ function computeTitle(): string {
   if (currentSnapshot.aggregateStatus === "building") {
     const oldest = oldestBuilding(currentSnapshot);
     if (oldest) {
-      const elapsed = Math.floor((Date.now() - oldest.createdAt) / 1000);
+      // Show time since the BUILD phase started. If we're still QUEUED
+      // (no buildingAt yet) the helper falls back to createdAt, so the
+      // user sees the queue wait rather than a stuck 0:00.
+      const elapsed = buildDurationSeconds(oldest);
       return ` ${formatDuration(elapsed)}`;
     }
   }

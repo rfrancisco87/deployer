@@ -38,6 +38,11 @@ export interface VercelDeploymentDTO {
   target?: string | null;
   created?: number;
   createdAt?: number;
+  /** When the build phase started (ms epoch). Null/absent while queued. */
+  buildingAt?: number | null;
+  /** When the deployment reached READY (ms epoch). */
+  ready?: number | null;
+  readyAt?: number | null;
   meta?: VercelDeploymentMetaDTO;
   inspectorUrl?: string;
   creator?: { username?: string; uid?: string } | null;

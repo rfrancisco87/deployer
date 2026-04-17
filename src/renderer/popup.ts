@@ -27,6 +27,8 @@ interface Deployment {
   state: DeploymentState;
   target: "production" | null;
   createdAt: number;
+  buildingAt: number | null;
+  readyAt: number | null;
   meta: DeploymentMeta;
   inspectorUrl: string | null;
   creator: string | null;
@@ -270,7 +272,10 @@ function isTerminal(s: DeploymentState): boolean {
 }
 
 function computeDurationLabel(d: Deployment): string {
-  const seconds = Math.floor((Date.now() - d.createdAt) / 1000);
+  // Match Vercel's dashboard: time the build was running.
+  const start = d.buildingAt ?? d.createdAt;
+  const end = d.readyAt ?? Date.now();
+  const seconds = Math.max(0, Math.floor((end - start) / 1000));
   return formatDuration(seconds);
 }
 
