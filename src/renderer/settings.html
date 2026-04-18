@@ -62,6 +62,10 @@
       height: 100%;
       overflow: hidden; /* body never scrolls; content area handles it */
     }
+    a, button:not(:disabled), select, label, input[type="checkbox"] {
+      cursor: pointer;
+    }
+    button:disabled { cursor: default; }
 
     .shell {
       height: 100vh;
