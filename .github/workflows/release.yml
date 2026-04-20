@@ -37,7 +37,10 @@ jobs:
         run: npm run build
 
       - name: Package (${{ matrix.arch }})
-        run: PATH="$PWD/scripts/shims:$PATH" npx electron-builder --mac --${{ matrix.arch }}
+        # `--publish never` prevents electron-builder from trying to upload
+        # to GitHub Releases itself; the downstream `release` job uses
+        # softprops/action-gh-release to publish instead.
+        run: PATH="$PWD/scripts/shims:$PATH" npx electron-builder --mac --${{ matrix.arch }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
