@@ -98,7 +98,16 @@
       font-size: 12px;
     }
     header .icon {
-      opacity: 0.85;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    header .icon img { width: 100%; height: 100%; object-fit: contain; }
+    /* Invert the logo in dark mode so the black line-art shows up. */
+    @media (prefers-color-scheme: dark) {
+      header .icon img { filter: invert(1); }
     }
     header .actions {
       display: flex;
@@ -262,33 +271,32 @@
       color: var(--fg-dim);
     }
 
+    /* The commit block is always rendered as a dark terminal card —
+       readable in both light and dark OS themes without needing
+       separate overrides. */
     .commit {
       margin-top: 12px;
       background: #0b0b0d;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
       padding: 10px 12px;
       font-family: var(--mono);
       font-size: 11.5px;
       line-height: 1.55;
-      color: var(--fg);
-    }
-    @media (prefers-color-scheme: light) {
-      .commit { background: #0f172a; color: #e2e8f0; border-color: transparent; }
-      .commit .hash-line { color: #94a3b8; }
+      color: #e2e8f0;
     }
     .commit .hash-line {
-      color: var(--fg-dimmer);
+      color: #71717a;
       margin-bottom: 4px;
     }
     .commit .msg-line {
-      color: var(--fg);
       white-space: pre-wrap;
       word-break: break-word;
+      /* color inherits from .commit */
     }
     .commit .msg-line::before {
       content: "> ";
-      color: var(--fg-dim);
+      color: #94a3b8;
     }
 
     /* Empty / status states */
@@ -363,7 +371,7 @@
   <div class="shell">
     <header>
       <div class="title">
-        <span class="icon">▲</span>
+        <span class="icon"><img src="../resources/app-icon.png" alt="" /></span>
         <span>Deployments</span>
       </div>
       <div class="actions">

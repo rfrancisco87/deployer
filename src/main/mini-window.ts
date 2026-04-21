@@ -1,5 +1,6 @@
 import { BrowserWindow, screen, type Tray } from "electron";
 import path from "path";
+import { uiEvents } from "./ui-events";
 
 const MINI_W = 360;
 const MINI_H = 70;
@@ -66,6 +67,13 @@ function create(): BrowserWindow {
       console.log(`[mini:${level}] ${sourceId}:${line} ${message}`);
     },
   );
+
+  miniWindow.on("hide", () => {
+    // Whenever the mini disappears (auto-hide, ✕ click, or click-through to
+    // details), we consider the user to have "seen" this event — drop the
+    // colored dot until the next transition.
+    uiEvents.emit("tray:ack");
+  });
 
   miniWindow.on("closed", () => {
     miniWindow = null;
