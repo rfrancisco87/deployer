@@ -73,11 +73,29 @@ function toDeployment(dto: VercelDeploymentDTO): Deployment {
     buildingAt: dto.buildingAt ?? null,
     readyAt: state === "READY" ? (dto.ready ?? dto.readyAt ?? null) : null,
     meta: {
-      githubCommitMessage: dto.meta?.githubCommitMessage,
-      githubCommitRef: dto.meta?.githubCommitRef,
-      githubCommitSha: dto.meta?.githubCommitSha,
-      githubRepo: dto.meta?.githubRepo,
-      githubRepoOwner: dto.meta?.githubRepoOwner,
+      // Vercel exposes commit data under provider-specific keys. Fall
+      // through GitHub → GitLab → Bitbucket so every connected repo
+      // populates the same Deployment.meta shape downstream.
+      githubCommitMessage:
+        dto.meta?.githubCommitMessage ??
+        dto.meta?.gitlabCommitMessage ??
+        dto.meta?.bitbucketCommitMessage,
+      githubCommitRef:
+        dto.meta?.githubCommitRef ??
+        dto.meta?.gitlabCommitRef ??
+        dto.meta?.bitbucketCommitRef,
+      githubCommitSha:
+        dto.meta?.githubCommitSha ??
+        dto.meta?.gitlabCommitSha ??
+        dto.meta?.bitbucketCommitSha,
+      githubRepo:
+        dto.meta?.githubRepo ??
+        dto.meta?.gitlabProjectName ??
+        dto.meta?.bitbucketRepoSlug,
+      githubRepoOwner:
+        dto.meta?.githubRepoOwner ??
+        dto.meta?.gitlabProjectNamespace ??
+        dto.meta?.bitbucketRepoOwner,
     },
     inspectorUrl: dto.inspectorUrl ?? null,
     creator: dto.creator?.username ?? null,

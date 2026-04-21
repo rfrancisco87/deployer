@@ -26,6 +26,20 @@ export interface VercelDeploymentMetaDTO {
   githubCommitSha?: string;
   githubRepo?: string;
   githubRepoOwner?: string;
+
+  // GitLab-connected projects expose the same data under different keys.
+  gitlabCommitMessage?: string;
+  gitlabCommitRef?: string;
+  gitlabCommitSha?: string;
+  gitlabProjectNamespace?: string;
+  gitlabProjectName?: string;
+
+  // Bitbucket-connected projects.
+  bitbucketCommitMessage?: string;
+  bitbucketCommitRef?: string;
+  bitbucketCommitSha?: string;
+  bitbucketRepoOwner?: string;
+  bitbucketRepoSlug?: string;
 }
 
 export interface VercelDeploymentDTO {

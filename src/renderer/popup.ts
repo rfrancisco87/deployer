@@ -217,12 +217,15 @@ function buildDetail(d: Deployment): HTMLDivElement {
   wrap.appendChild(actions);
 
   const msg = d.meta.githubCommitMessage?.split("\n")[0]?.trim();
+  const commit = document.createElement("div");
+  commit.className = "commit";
   if (msg) {
-    const commit = document.createElement("div");
-    commit.className = "commit";
     commit.innerHTML = `<div class="hash-line"># commit message</div><div class="msg-line">${escapeHtml(msg)}</div>`;
-    wrap.appendChild(commit);
+  } else {
+    console.log("[popup.ts] no commit message on deployment", d.id, "meta:", d.meta);
+    commit.innerHTML = `<div class="hash-line"># commit message</div><div class="msg-line empty">(no git metadata on this deployment)</div>`;
   }
+  wrap.appendChild(commit);
 
   return wrap;
 }

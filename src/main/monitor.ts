@@ -143,6 +143,14 @@ export class Monitor extends EventEmitter {
       const deployments = await this.client.listDeployments(pid, 10);
       latestByProject[pid] = deployments[0] ?? null;
       allDeployments.push(...deployments);
+      // Diagnostic: first deployment per project once per tick, so we
+      // can see what commit-related fields Vercel is actually returning.
+      if (deployments[0]) {
+        console.log(
+          `[monitor] ${pid} latest meta:`,
+          JSON.stringify(deployments[0].meta),
+        );
+      }
 
       for (const d of deployments) {
         if (!d.id) continue;
