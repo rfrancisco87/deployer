@@ -32,7 +32,7 @@ function postNotification(event: TransitionEvent): void {
   const n = new Notification({
     title: `Vercel · ${d.name} ${verb}`,
     body,
-    silent: event.to === "READY",
+    silent: false,
   });
 
   n.on("click", () => {

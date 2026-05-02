@@ -92,10 +92,12 @@ function stateClass(state: DeploymentState): string {
 
 function formatDate(ms: number): string {
   const d = new Date(ms);
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleString(undefined, {
     day: "numeric",
     month: "short",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
