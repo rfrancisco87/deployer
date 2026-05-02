@@ -1,4 +1,5 @@
 import { Notification } from "electron";
+import { execFile } from "child_process";
 import { openUrl } from "./open-url";
 import type { TransitionEvent } from "../shared/types";
 import type { Monitor } from "./monitor";
@@ -32,7 +33,7 @@ function postNotification(event: TransitionEvent): void {
   const n = new Notification({
     title: `Vercel · ${d.name} ${verb}`,
     body,
-    silent: false,
+    silent: true,
   });
 
   n.on("click", () => {
@@ -40,6 +41,22 @@ function postNotification(event: TransitionEvent): void {
   });
 
   n.show();
+  playSound(event.to);
+}
+
+// Native Notification's `silent: false` requests the system default sound,
+// but macOS routinely suppresses it (per-app notification settings, alert
+// sound set to "None", focus modes, unsigned-app quirks). Play the sound
+// ourselves via `afplay` so it's reliable across those configurations.
+function playSound(outcome: TransitionEvent["to"]): void {
+  if (process.platform !== "darwin") return;
+  const file =
+    outcome === "READY"
+      ? "/System/Library/Sounds/Glass.aiff"
+      : "/System/Library/Sounds/Basso.aiff";
+  execFile("/usr/bin/afplay", [file], (err) => {
+    if (err) console.error("[notifications] afplay failed:", err.message);
+  });
 }
 
 function deepLink(event: TransitionEvent): string {
