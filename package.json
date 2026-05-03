@@ -1,6 +1,6 @@
 {
   "name": "deployer",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "macOS menu bar app that surfaces Vercel deployment status in real time.",
   "main": "dist/main/index.js",
   "author": "Roberto Francisco",
