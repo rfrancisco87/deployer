@@ -32,6 +32,7 @@
     "appId": "com.robertofrancisco.deployer",
     "productName": "Deployer",
     "copyright": "Copyright © 2026 Roberto Francisco",
+    "afterPack": "scripts/after-pack.js",
     "directories": {
       "output": "release"
     },
