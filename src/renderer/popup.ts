@@ -169,10 +169,19 @@ function buildDetail(d: Deployment): HTMLDivElement {
 
   const duration = document.createElement("div");
   duration.className = "duration";
-  duration.innerHTML = `
-    <span>◴</span>
-    <span>Duration: <span class="duration-value" data-duration="${d.id}">${computeDurationLabel(d)}</span></span>
-  `;
+  // Built as nodes, not innerHTML: `d.id` comes off the Vercel API and would
+  // otherwise be interpolated raw into an HTML attribute. `dataset` sets the
+  // attribute without going through the HTML parser.
+  const icon = document.createElement("span");
+  icon.textContent = "◴";
+  const label = document.createElement("span");
+  label.append("Duration: ");
+  const value = document.createElement("span");
+  value.className = "duration-value";
+  value.dataset.duration = d.id;
+  value.textContent = computeDurationLabel(d);
+  label.appendChild(value);
+  duration.append(icon, label);
   wrap.appendChild(duration);
 
   const actions = document.createElement("div");
@@ -366,13 +375,22 @@ function maybeStartTicker(): void {
   if (hasActive && ticker === null) {
     ticker = setInterval(() => {
       if (!lastSnapshot) return;
-      for (const d of lastSnapshot.recentDeployments) {
-        if (isTerminal(d.state)) continue;
-        const el = document.querySelector<HTMLElement>(
-          `[data-duration="${d.id}"]`,
-        );
-        if (el) el.textContent = computeDurationLabel(d);
-      }
+      // Match by reading dataset off the rendered nodes rather than building a
+      // selector from `d.id` — an id containing quotes or brackets would break
+      // out of the attribute selector.
+      const byId = new Map(
+        lastSnapshot.recentDeployments.map((d): [string, Deployment] => [
+          d.id,
+          d,
+        ]),
+      );
+      document
+        .querySelectorAll<HTMLElement>("[data-duration]")
+        .forEach((el) => {
+          const d = byId.get(el.dataset.duration ?? "");
+          if (!d || isTerminal(d.state)) return;
+          el.textContent = computeDurationLabel(d);
+        });
     }, 1000);
   } else if (!hasActive && ticker !== null) {
     clearInterval(ticker);

@@ -55,7 +55,16 @@ function render(payload: MiniPayload | null): void {
   const status = $("status");
   const branch = payload.branch ? ` · ${payload.branch}` : "";
   if (payload.outcome === "READY") {
-    status.innerHTML = `${outcomeLabel(payload.outcome)} in <span class="duration">${formatDuration(payload.durationSeconds)}</span>${branch}`;
+    // Built as nodes, not innerHTML: `branch` is attacker-controllable git
+    // metadata (a ref name may legally contain `<` and `>`).
+    const duration = document.createElement("span");
+    duration.className = "duration";
+    duration.textContent = formatDuration(payload.durationSeconds);
+    status.replaceChildren(
+      document.createTextNode(`${outcomeLabel(payload.outcome)} in `),
+      duration,
+      document.createTextNode(branch),
+    );
   } else {
     status.textContent = `${outcomeLabel(payload.outcome)}${branch}`;
   }

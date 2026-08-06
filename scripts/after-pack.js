@@ -14,14 +14,23 @@
 //   first, inner-to-outer, before sealing the outer bundle.
 const { execFileSync } = require("node:child_process");
 const path = require("node:path");
-const { readdirSync, statSync } = require("node:fs");
+const { readdirSync } = require("node:fs");
 
-function walk(dir, match, out) {
-  for (const entry of readdirSync(dir)) {
-    const full = path.join(dir, entry);
-    const st = statSync(full);
-    if (st.isDirectory()) walk(full, match, out);
-    else if (match(entry)) out.push(full);
+// Collect files under `dir` matching `match`, never leaving `root`.
+//
+// Symlinks are skipped outright rather than followed: a macOS .app bundle is
+// full of them (Framework/Versions/Current -> A), so following them both
+// recurses forever and hands `codesign --force` a path that can resolve
+// anywhere on disk. The path.relative guard is a second line of defence in
+// case a directory entry ever resolves outside the bundle.
+function walk(dir, match, out, root = path.resolve(dir)) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isSymbolicLink()) continue;
+    const full = path.resolve(dir, entry.name);
+    const rel = path.relative(root, full);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) continue;
+    if (entry.isDirectory()) walk(full, match, out, root);
+    else if (entry.isFile() && match(entry.name)) out.push(full);
   }
 }
 
